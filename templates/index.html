@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SociaLytix</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+  <script src="https://kit.fontawesome.com/1c42d02712.js" crossorigin="anonymous"></script>
+  <style>
+    @keyframes dots {
+      0% { content: "."; }
+      33% { content: ".."; }
+      66% { content: "..."; }
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #0e1117;
+      color: #e4e4e4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .chat-container {
+      width: 720px;
+      height: 700px;
+      background: #161b22;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #30363d;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+    .chat-title {
+      text-align: center;
+      background: #1f2937;
+      padding: 16px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #58a6ff;
+      border-bottom: 1px solid #30363d;
+    }
+    .chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #0d1117;
+      scrollbar-width: thin;
+      scrollbar-color: #555 #1e1e1e;
+    }
+    .input-box {
+      display: flex;
+      padding: 15px;
+      border-top: 1px solid #30363d;
+      background: #1a1f26;
+    }
+    input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #2d333b;
+      color: #e4e4e4;
+      font-size: 16px;
+      outline: none;
+    }
+    button {
+      padding: 12px;
+      background: #238636;
+      border: none;
+      border-radius: 10px;
+      margin-left: 10px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .message {
+      padding: 12px;
+      border-radius: 10px;
+      max-width: 80%;
+      word-wrap: break-word;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .user {
+      background: #58a6ff; 
+      align-self: flex-end; 
+      color: #fff; 
+    }
+    .bot { 
+      background: #2ea043; 
+      color: #fff; 
+      align-self: flex-start; 
+    }
+    .thinking {
+      font-style: italic;
+      color: #aaa;
+      align-self: flex-start;
+    }
+    .thinking::after {
+      content: ".";
+      animation: dots 1.5s infinite steps(3);
+    }
+    .footer {
+      text-align: center;
+      background: #161b22;
+      color: #58a6ff;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #58a6ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-title">💬 SociaLytix by Adharv Arun Kondath</div>
+    <div class="chat-box" id="chatBox"></div>
+    <div class="input-box">
+      <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+      <button class="send" onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Made with ❤️ by <a href="https://adharvarun.tech" target="_blank">Adharv Arun</a></p>
+  </footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js" integrity="sha512-LhccdVNGe2QMEfI3x4DVV3ckMRe36TfydKss6mJpdHjNFiV07dFpS2xzeZedptKZrwxfICJpez09iNioiSZ3hA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    var converter = new showdown.Converter();
+    document.addEventListener("DOMContentLoaded", function() {
+      const chatBox = document.getElementById("chatBox");
+      const botMessage = document.createElement("div");
+      botMessage.classList.add("message", "bot");
+      botMessage.innerHTML = `Welcome to <strong>SociaLytix</strong>! I'm here to help you reflect on your social media habits and how they might be affecting your mental well-being. Based on a short set of questions, you'll receive a Mental Health Score and Social Media Addiction Score. Ready? Type <code>@start</code> to begin.`;
+      chatBox.appendChild(botMessage);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    const socket = io();
+    let thinkingIndicator = null;
+
+    function sendMessage() {
+      const input = document.getElementById("userInput");
+      const message = input.value.trim();
+      if (!message) return;
+
+      const chatBox = document.getElementById("chatBox");
+      const userMessage = document.createElement("div");
+      userMessage.classList.add("message", "user");
+      userMessage.innerHTML = `<strong>You:</strong> ${message}`;
+      chatBox.appendChild(userMessage);
+      input.value = "";
+
+      showThinkingIndicator();
+      socket.emit("message", message);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === "Enter") sendMessage();
+    }
+
+    function showThinkingIndicator() {
+      const chatBox = document.getElementById("chatBox");
+      thinkingIndicator = document.createElement("div");
+      thinkingIndicator.classList.add("message", "thinking");
+      thinkingIndicator.innerText = "SociaLytix is thinking";
+      chatBox.appendChild(thinkingIndicator);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function hideThinkingIndicator() {
+      if (thinkingIndicator) {
+        thinkingIndicator.remove();
+        thinkingIndicator = null;
+      }
+    }
+
+    socket.on("response", function(data) {
+      hideThinkingIndicator();
+      const chatBox = document.getElementById("chatBox");
+      const botMessage = document.createElement("div");
+      botMessage.classList.add("message", "bot");
+      botMessageHtml = converter.makeHtml(data);
+      botMessage.innerHTML = `<strong>SociaLytix:</strong> ${botMessageHtml}`;
+      chatBox.appendChild(botMessage);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+  </script>
+</body>
+</html>
