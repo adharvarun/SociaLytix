@@ -7,142 +7,170 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
   <script src="https://kit.fontawesome.com/1c42d02712.js" crossorigin="anonymous"></script>
   <style>
-    @keyframes dots {
-      0% { content: "."; }
-      33% { content: ".."; }
-      66% { content: "..."; }
-    }
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #0e1117;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background: #0e1117;
       color: #e4e4e4;
+      margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
-    .chat-container {
-      width: 720px;
-      height: 700px;
-      background: #161b22;
-      border-radius: 14px;
+
+    .chat-wrapper {
       display: flex;
       flex-direction: column;
+      width: 850px;
+      height: 720px;
+      background: rgba(22, 27, 34, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
       overflow: hidden;
       border: 1px solid #30363d;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
     }
-    .chat-title {
-      text-align: center;
-      background: #1f2937;
-      padding: 16px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #58a6ff;
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      background: #161b22;
       border-bottom: 1px solid #30363d;
+      font-size: 22px;
+      font-weight: 600;
+      color: #58a6ff;
     }
-    .chat-box {
+    .chat-header img {
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+    }
+
+    .chat-content {
       flex: 1;
-      padding: 20px;
+      padding: 24px;
       overflow-y: auto;
+      background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      background: #0d1117;
+      gap: 14px;
       scrollbar-width: thin;
-      scrollbar-color: #555 #1e1e1e;
+      scrollbar-color: #444 #161b22;
     }
-    .input-box {
-      display: flex;
-      padding: 15px;
-      border-top: 1px solid #30363d;
-      background: #1a1f26;
-    }
-    input {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      background: #2d333b;
-      color: #e4e4e4;
-      font-size: 16px;
-      outline: none;
-    }
-    button {
-      padding: 12px;
-      background: #238636;
-      border: none;
-      border-radius: 10px;
-      margin-left: 10px;
-      cursor: pointer;
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    .message {
-      padding: 12px;
-      border-radius: 10px;
-      max-width: 80%;
-      word-wrap: break-word;
-      font-size: 16px;
+
+    .chat-message {
+      padding: 14px 18px;
+      border-radius: 14px;
+      max-width: 70%;
       line-height: 1.5;
+      font-size: 15px;
+      animation: fadeIn 0.3s ease-in-out;
     }
-    .user {
-      background: #58a6ff; 
-      align-self: flex-end; 
-      color: #fff; 
+
+    .chat-message.user {
+      background: #238636;
+      align-self: flex-end;
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(35,134,54,0.4);
     }
-    .bot { 
-      background: #2ea043; 
-      color: #fff; 
-      align-self: flex-start; 
+
+    .chat-message.bot {
+      background: #1f6feb;
+      align-self: flex-start;
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(31,111,235,0.4);
     }
-    .thinking {
-      font-style: italic;
+
+    .chat-message.thinking {
+      background: #2d333b;
       color: #aaa;
+      font-style: italic;
       align-self: flex-start;
     }
-    .thinking::after {
-      content: ".";
-      animation: dots 1.5s infinite steps(3);
-    }
-    .footer {
-      text-align: center;
+
+    .chat-input {
+      display: flex;
+      padding: 16px;
       background: #161b22;
-      color: #58a6ff;
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      font-size: 14px;
+      border-top: 1px solid #30363d;
+      gap: 12px;
     }
-    .footer a {
+
+    .chat-input input {
+      flex: 1;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      background: #2d333b;
+      color: #e4e4e4;
+      font-size: 15px;
+    }
+
+    .chat-input button {
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
+      background: #58a6ff;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .chat-input button:hover {
+      background: #1f6feb;
+    }
+
+    .chat-footer {
+      text-align: center;
+      padding: 12px;
+      background: #0d1117;
+      font-size: 13px;
+      color: #8b949e;
+      border-top: 1px solid #30363d;
+    }
+    .chat-footer a {
       color: #58a6ff;
+      text-decoration: none;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div class="chat-title">💬 SociaLytix by Adharv Arun Kondath</div>
-    <div class="chat-box" id="chatBox"></div>
-    <div class="input-box">
+  <div class="chat-wrapper">
+    <div class="chat-header">
+      SociaLytix
+      <img src="{{ url_for('static', filename='Logo.png') }}" alt="SociaLytix Logo" />
+    </div>
+
+    <div class="chat-content" id="chatBox"></div>
+
+    <div class="chat-input">
       <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
-      <button class="send" onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
+      <button onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
+    </div>
+
+    <div class="chat-footer">
+      Made with ❤️ by <a href="https://adharvarun.tech" target="_blank">Adharv Arun</a>
     </div>
   </div>
 
-  <footer class="footer">
-    <p>Made with ❤️ by <a href="https://adharvarun.tech" target="_blank">Adharv Arun</a></p>
-  </footer>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js" integrity="sha512-LhccdVNGe2QMEfI3x4DVV3ckMRe36TfydKss6mJpdHjNFiV07dFpS2xzeZedptKZrwxfICJpez09iNioiSZ3hA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
   <script>
     var converter = new showdown.Converter();
     document.addEventListener("DOMContentLoaded", function() {
       const chatBox = document.getElementById("chatBox");
-      const botMessage = document.createElement("div");
-      botMessage.classList.add("message", "bot");
-      botMessage.innerHTML = `Welcome to <strong>SociaLytix</strong>! I'm here to help you reflect on your social media habits and how they might be affecting your mental well-being. Based on a short set of questions, you'll receive a Mental Health Score and Social Media Addiction Score. Ready? Type <code>@start</code> to begin.`;
-      chatBox.appendChild(botMessage);
+      const welcomeMsg = document.createElement("div");
+      welcomeMsg.classList.add("chat-message", "bot");
+      welcomeMsg.innerHTML = `Welcome to <strong>SociaLytix</strong>! 🌱<br>
+      I'm here to help you reflect on your social media habits.<br>
+      Type <code>@start</code> to begin your assessment.`;
+      chatBox.appendChild(welcomeMsg);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
@@ -155,13 +183,13 @@
       if (!message) return;
 
       const chatBox = document.getElementById("chatBox");
-      const userMessage = document.createElement("div");
-      userMessage.classList.add("message", "user");
-      userMessage.innerHTML = `<strong>You:</strong> ${message}`;
-      chatBox.appendChild(userMessage);
+      const userMsg = document.createElement("div");
+      userMsg.classList.add("chat-message", "user");
+      userMsg.textContent = message;
+      chatBox.appendChild(userMsg);
       input.value = "";
 
-      showThinkingIndicator();
+      showThinking();
       socket.emit("message", message);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -170,16 +198,16 @@
       if (event.key === "Enter") sendMessage();
     }
 
-    function showThinkingIndicator() {
+    function showThinking() {
       const chatBox = document.getElementById("chatBox");
       thinkingIndicator = document.createElement("div");
-      thinkingIndicator.classList.add("message", "thinking");
-      thinkingIndicator.innerText = "SociaLytix is thinking";
+      thinkingIndicator.classList.add("chat-message", "thinking");
+      thinkingIndicator.innerText = "SociaLytix is thinking...";
       chatBox.appendChild(thinkingIndicator);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function hideThinkingIndicator() {
+    function hideThinking() {
       if (thinkingIndicator) {
         thinkingIndicator.remove();
         thinkingIndicator = null;
@@ -187,13 +215,12 @@
     }
 
     socket.on("response", function(data) {
-      hideThinkingIndicator();
+      hideThinking();
       const chatBox = document.getElementById("chatBox");
-      const botMessage = document.createElement("div");
-      botMessage.classList.add("message", "bot");
-      botMessageHtml = converter.makeHtml(data);
-      botMessage.innerHTML = `<strong>SociaLytix:</strong> ${botMessageHtml}`;
-      chatBox.appendChild(botMessage);
+      const botMsg = document.createElement("div");
+      botMsg.classList.add("chat-message", "bot");
+      botMsg.innerHTML = converter.makeHtml(data);
+      chatBox.appendChild(botMsg);
       chatBox.scrollTop = chatBox.scrollHeight;
     });
   </script>
