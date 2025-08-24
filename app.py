@@ -164,4 +164,4 @@ def handle_message(msg):
         emit("response", "Oops, I had trouble thinking that through. Mind trying again?")
     
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
