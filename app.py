@@ -94,13 +94,20 @@ def handle_message(msg):
                     input_df = pd.DataFrame([input_data])
                     input_df = input_df.reindex(columns=feature_columns, fill_value=0)
 
-                    for col in encoders:
+                    for col, le in encoders.items():
                         if col in input_df.columns:
-                            val = input_df.at[0, col]
-                            if val in encoders[col].classes_:
-                                input_df.at[0, col] = encoders[col].transform([val])[0]
+                            input_df[col] = input_df[col].astype("object")
+                            val = str(input_df.at[0, col]).strip().lower()
+                            if val in le.classes_:
+                                input_df.at[0, col] = le.transform([val])[0]
                             else:
                                 input_df.at[0, col] = -1
+
+                    for col in encoders:
+                        if col in input_df.columns:
+                            input_df[col] = pd.to_numeric(input_df[col], errors="coerce")
+
+                    input_df = input_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
                     for num_col in ["Age", "Avg_Daily_Usage_Hours", "Conflicts_Over_Social_Media", "Sleep_Hours_Per_Night"]:
                         if num_col in input_df.columns:

@@ -40,21 +40,43 @@ def load_and_prepare(file_path):
 
     df.drop(columns=[col for col in ['Student_ID', 'id'] if col in df.columns], inplace=True)
 
-    categorical_columns = ["Age", "Gender", "Academic_Level", "Country", "Avg_Daily_Usage_Hours",
-                           "Most_Used_Platform", "Affects_Academic_Performance",
-                           "Relationship_Status", "Conflicts_Over_Social_Media", "Sleep_Hours_Per_Night"]
+    numeric_cols = [
+        "Age",
+        "Avg_Daily_Usage_Hours",
+        "Conflicts_Over_Social_Media",
+        "Sleep_Hours_Per_Night"
+    ]
 
-    for col in categorical_columns + ["Mental_Health_Score", "Addicted_Score"]:
+    categorical_cols = [
+        "Gender",
+        "Academic_Level",
+        "Country",
+        "Most_Used_Platform",
+        "Affects_Academic_Performance",
+        "Relationship_Status"
+    ]
+
+    target_cols = ["Mental_Health_Score", "Addicted_Score"]
+
+    for col in numeric_cols + target_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    for col in categorical_cols:
         df[col] = df[col].astype(str).str.lower()
 
+    from sklearn.impute import SimpleImputer
+
+    num_imputer = SimpleImputer(strategy="mean")
+    cat_imputer = SimpleImputer(strategy="most_frequent")
+
+    df[numeric_cols + target_cols] = num_imputer.fit_transform(df[numeric_cols + target_cols])
+    df[categorical_cols] = cat_imputer.fit_transform(df[categorical_cols])
+
     encoders = {}
-    for col in categorical_columns:
+    for col in categorical_cols:
         le = LabelEncoder()
         df[col] = le.fit_transform(df[col])
         encoders[col] = le
-
-    imputer = KNNImputer(n_neighbors=3)
-    df.iloc[:, :] = imputer.fit_transform(df)
 
     return df, encoders
 
